@@ -28,6 +28,7 @@ cenum alert_level {
 (* TLS alert types *)
 cenum alert_type {
   CLOSE_NOTIFY                    = 0;   (*RFC5246*)
+  END_OF_EARLY_DATA               = 1;   (*TLS 1.3*)
   UNEXPECTED_MESSAGE              = 10;  (*RFC5246*)
   BAD_RECORD_MAC                  = 20;  (*RFC5246*)
   DECRYPTION_FAILED               = 21;  (*RFC5246*)
@@ -66,17 +67,19 @@ cenum handshake_type {
   CLIENT_HELLO         = 1;
   SERVER_HELLO         = 2;
   HELLO_VERIFY_REQUEST = 3; (*RFC6347*)
-  NEWSESSIONTICKET     = 4; (*RFC4507*)
+  SESSION_TICKET       = 4; (*RFC4507*)
+  HELLO_RETRY_REQUEST  = 6; (*TLS 1.3*)
+  ENCRYPTED_EXTENSIONS = 8; (*TLS 1.3*)
   CERTIFICATE          = 11;
   SERVER_KEY_EXCHANGE  = 12;
   CERTIFICATE_REQUEST  = 13;
   SERVER_HELLO_DONE    = 14;
   CERTIFICATE_VERIFY   = 15;
   CLIENT_KEY_EXCHANGE  = 16;
+  SERVER_CONFIGURATION = 17; (*TLS 1.3*)
   FINISHED             = 20;
-  (* from RFC 4366 *)
-  CERTIFICATE_URL      = 21;
-  CERTIFICATE_STATUS   = 22;
+  CERTIFICATE_URL      = 21; (*RFC4366*)
+  CERTIFICATE_STATUS   = 22; (*RFC4366*)
   SUPPLEMENTAL_DATA    = 23; (*RFC4680*)
 } as uint8_t (sexp)
 
@@ -113,7 +116,7 @@ cenum extension_type {
   CLIENT_AUTHZ                           = 7;  (*RFC5878*)
   SERVER_AUTHZ                           = 8;  (*RFC5878*)
   CERT_TYPE                              = 9;  (*RFC6091*)
-  ELLIPTIC_CURVES                        = 10; (*RFC4492*)
+  SUPPORTED_GROUPS                       = 10; (*RFC4492 / TLS 1.3*)
   EC_POINT_FORMATS                       = 11; (*RFC4492*)
   SRP                                    = 12; (*RFC5054*)
   SIGNATURE_ALGORITHMS                   = 13; (*RFC5246*)
@@ -128,6 +131,10 @@ cenum extension_type {
   ENCRYPT_THEN_MAC                       = 22; (*RFC7366*)
   EXTENDED_MASTER_SECRET                 = 23; (*draft-ietf-tls-session-hash*)
   SESSIONTICKET_TLS                      = 35; (*RFC4507*)
+  EARLY_DATA                             = 40; (*TLS 1.3*)
+  PRE_SHARED_KEY                         = 41; (*TLS 1.3*)
+  KEY_SHARE                              = 42; (*TLS 1.3*)
+  COOKIE                                 = 43; (*TLS 1.3*)
   RENEGOTIATION_INFO                     = 0xFF01; (*RFC5746*)
 } as uint16_t (sexp)
 
@@ -145,6 +152,8 @@ cenum signature_algorithm_type {
   RSA       = 1;
   DSA       = 2;
   ECDSA     = 3;
+  RSAPSS    = 4; (*TLS 1.3*)
+  EDDSA     = 5; (*TLS 1.3*)
 } as uint8_t (sexp)
 
 cenum hash_algorithm {
@@ -183,7 +192,7 @@ cenum ec_curve_type {
   NAMED_CURVE    = 3
 } as uint8_t (sexp)
 
-cenum named_curve_type {
+cenum named_group_type {
   SECT163K1 = 1;
   SECT163R1 = 2;
   SECT163R2 = 3;
@@ -213,6 +222,21 @@ cenum named_curve_type {
   BRAINPOOLP256R1 = 26;
   BRAINPOOLP384R1 = 27;
   BRAINPOOLP512R1 = 28;
+  ECDH_X25519 = 29; (*TLS 1.3*)
+  ECDH_X448 = 30; (*TLS 1.3*)
+  EDDSA_ED25519 = 31; (*TLS 1.3*)
+  EDDSA_ED448 = 32; (*TLS 1.3*)
+  FFDHE2048 = 256; (*TLS 1.3*)
+  FFDHE3072 = 257; (*TLS 1.3*)
+  FFDHE4096 = 258; (*TLS 1.3*)
+  FFDHE6144 = 259; (*TLS 1.3*)
+  FFDHE8192 = 260; (*TLS 1.3*)
+
+  FFDHE_PRIVATE_USE1 = 0x01FC; (*TLS 1.3*)
+  FFDHE_PRIVATE_USE2 = 0x01FD; (*TLS 1.3*)
+  FFDHE_PRIVATE_USE3 = 0x01FE; (*TLS 1.3*)
+  FFDHE_PRIVATE_USE4 = 0x01FF; (*TLS 1.3*)
+  (* ECDHE_PRIVATE_USE = 0xFE00..0xFEFF*)
   (* reserved (0xFE00..0xFEFF), *)
   ARBITRARY_EXPLICIT_PRIME_CURVES = 0xFF01;
   ARBITRARY_EXPLICIT_CHAR2_CURVES = 0xFF02

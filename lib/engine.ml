@@ -370,8 +370,16 @@ let handle_raw_record state (hdr, buf as record : raw_record) =
     | Server (AwaitClientHello)  , _     -> return ()
     | _                          , true  -> return ()
     | _                          , false -> fail (`Fatal (`BadRecordVersion hdr.version)) )
+  (* hdr.version is always 0x03 0x01 in TLS 1.3 *)
   >>= fun () ->
   decrypt version state.decryptor hdr.content_type buf
+  (* in 1.3 the content type is inside of the encrypted thing:
+     - hdr.content_type _must_ be 23
+     - <data> + <type> + <0*> (padding) [where total length may not exceed 2 ^ 14]
+     - AEAD enc/dec is also different:
+       - there's no adata
+       - let seq = left-padding sequence 0s until iv_length
+       - nonce = seq XOR write_iv *)
   >>= fun (dec_st, dec) ->
   handle_packet state.handshake dec hdr.content_type
   >|= fun (handshake, items, data, err) ->
