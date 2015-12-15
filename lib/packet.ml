@@ -192,7 +192,7 @@ cenum ec_curve_type {
   NAMED_CURVE    = 3
 } as uint8_t (sexp)
 
-cenum named_group_type {
+cenum named_group {
   SECT163K1 = 1;
   SECT163R1 = 2;
   SECT163R2 = 3;

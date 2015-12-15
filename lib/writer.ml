@@ -132,7 +132,7 @@ let assemble_certificate_request_1_2 ts sigalgs cas =
 
 let assemble_named_group nc =
   let buf = create 2 in
-  BE.set_uint16 buf 0 (named_group_type_to_int nc);
+  BE.set_uint16 buf 0 (named_group_to_int nc);
   buf
 
 let assemble_supported_groups groups =

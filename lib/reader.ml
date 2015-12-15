@@ -189,7 +189,7 @@ let parse_fragment_length buf =
 
 let parse_named_group buf =
   let typ = BE.get_uint16 buf 0 in
-  (int_to_named_group_type typ, shift buf 2)
+  (int_to_named_group typ, shift buf 2)
 
 let parse_supported_groups buf =
   let count = BE.get_uint16 buf 0 in

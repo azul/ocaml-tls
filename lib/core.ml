@@ -79,7 +79,7 @@ end
 type client_extension = [
   | `Hostname of string
   | `MaxFragmentLength of max_fragment_length
-  | `SupportedGroups of named_group_type list
+  | `SupportedGroups of named_group list
   | `ECPointFormats of ec_point_format list
   | `SecureRenegotiation of Cstruct.t
   | `Padding of int
@@ -147,7 +147,7 @@ type ec_char_parameters = {
 type ec_parameters =
   | ExplicitPrimeParameters of ec_prime_parameters
   | ExplicitCharParameters of ec_char_parameters
-  | NamedCurveParameters of (named_group_type * Cstruct.t)
+  | NamedCurveParameters of (named_group * Cstruct.t)
   with sexp
 
 type tls_handshake =
