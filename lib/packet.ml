@@ -81,6 +81,7 @@ cenum handshake_type {
   CERTIFICATE_URL      = 21; (*RFC4366*)
   CERTIFICATE_STATUS   = 22; (*RFC4366*)
   SUPPLEMENTAL_DATA    = 23; (*RFC4680*)
+  KEY_UPDATE           = 24; (*TLS 1.3*)
 } as uint8_t (sexp)
 
 (* TLS certificate types *)
@@ -144,6 +145,13 @@ cenum max_fragment_length {
   TWO_10 = 2;
   TWO_11 = 3;
   TWO_12 = 4;
+} as uint8_t (sexp)
+
+(* TLS 1.3 *)
+cenum early_data_type {
+  CLIENT_AUTHENTICATION = 1;
+  EARLY_DATA = 2;
+  CLIENT_AUTHENTICATION_AND_DATA = 3;
 } as uint8_t (sexp)
 
 (* RFC 5246 *)
