@@ -50,9 +50,10 @@ cenum alert_type {
   PROTOCOL_VERSION                = 70;  (*RFC5246*)
   INSUFFICIENT_SECURITY           = 71;  (*RFC5246*)
   INTERNAL_ERROR                  = 80;  (*RFC5246*)
-  INAPPROPRIATE_FALLBACK          = 86;  (*draft-ietf-tls-downgrade-scsv*)
+  INAPPROPRIATE_FALLBACK          = 86; (*draft-ietf-tls-downgrade-scsv*)
   USER_CANCELED                   = 90;  (*RFC5246*)
   NO_RENEGOTIATION                = 100; (*RFC5246*)
+  MISSING_EXTENSION               = 109; (*TLS 1.3*)
   UNSUPPORTED_EXTENSION           = 110; (*RFC5246*)
   CERTIFICATE_UNOBTAINABLE        = 111; (*RFC6066*)
   UNRECOGNIZED_NAME               = 112; (*RFC6066*)
@@ -165,7 +166,7 @@ cenum signature_algorithm_type {
 } as uint8_t (sexp)
 
 cenum hash_algorithm {
-  NULL      = 0;
+  NULL      = 0; (* actually useful for EDDSA where no hashing is needed upfront! *)
   MD5       = 1;
   SHA       = 2;
   SHA224    = 3;
