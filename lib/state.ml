@@ -112,7 +112,7 @@ type server_handshake_state =
 (* state machine of the client *)
 type client_handshake_state =
   | ClientInitial (* initial state *)
-  | AwaitServerHello of client_hello * hs_log (* client hello is sent, handshake_params are half-filled *)
+  | AwaitServerHello of client_hello * (Dh.group * Dh.secret) list * hs_log (* client hello is sent, handshake_params are half-filled *)
   | AwaitServerHelloRenegotiate of session_data * client_hello * hs_log (* client hello is sent, handshake_params are half-filled *)
   | AwaitCertificate_RSA of session_data * hs_log (* certificate expected with RSA key exchange *)
   | AwaitCertificate_DHE_RSA of session_data * hs_log (* certificate expected with DHE_RSA key exchange *)
@@ -127,9 +127,10 @@ type client_handshake_state =
   with sexp
 
 type client13_handshake_state =
-  | AwaitServerEncryptedExtensions13 (* required, but may be empty *)
-  | AwaitServerCertificateVerify13 (* optional *)
-  | AwaitServerFinished13
+  | AwaitServerHello13 (* after HRR, CH *)
+  | AwaitServerEncryptedExtensions13 of session_data * server_extension list * Cstruct.t * Cstruct.t
+  | AwaitServerCertificateVerify13 of session_data * server_extension list * Cstruct.t * Cstruct.t
+  | AwaitServerFinished13 of session_data * server_extension list * Cstruct.t * Cstruct.t
   | Established13
   with sexp
 
