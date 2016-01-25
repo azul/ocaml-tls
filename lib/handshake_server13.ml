@@ -74,6 +74,7 @@ let answer_client_hello state ch buf =
      in
      let sh_raw = Writer.assemble_handshake (ServerHello sh) in
 
+     Tracing.sexpf ~tag:"handshake-out" ~f:sexp_of_tls_handshake (ServerHello sh) ;
 
      let hslog =
        let hash = Ciphersuite.hash_of cipher in
@@ -89,6 +90,8 @@ let answer_client_hello state ch buf =
      (* TODO also max_fragment_length ; client_certificate_url ; trusted_ca_keys ; user_mapping ; client_authz ; server_authz ; cert_type ; use_srtp ; heartbeat ; alpn ; status_request_v2 ; signed_cert_timestamp ; client_cert_type ; server_cert_type *)
      let ee_raw = Writer.assemble_handshake ee in
 
+     Tracing.sexpf ~tag:"handshake-out" ~f:sexp_of_tls_handshake ee ;
+
      (* there might be a CertificateRequest here (depending on config) *)
      (* there might be a ServerConfiguration in here for 0RTT (depending on config) -- if so, should also be exposed somehow *)
      (* certificate should depend on configuration (+SigAlgs +Hostname) *)
@@ -100,10 +103,14 @@ let answer_client_hello state ch buf =
      let cert = Certificate (Writer.assemble_certificates_1_3 (Cstruct.create 0) certs) in
      let cert_raw = Writer.assemble_handshake cert in
 
+     Tracing.sexpf ~tag:"handshake-out" ~f:sexp_of_tls_handshake cert ;
+
      let hs_raw = Cstruct.concat [ hs_raw ; ee_raw ; cert_raw ] in
      signature TLS_1_3 ~context_string:"TLS 1.3, server CertificateVerify" hs_raw (Some sigalgs) state.config.Config.hashes pr >>= fun signed ->
      let cv = CertificateVerify signed in
      let cv_raw = Writer.assemble_handshake cv in
+
+     Tracing.sexpf ~tag:"handshake-out" ~f:sexp_of_tls_handshake cv ;
 
      let hs_raw = hs_raw <+> cv_raw in
      let log = hslog hs_raw in
@@ -113,6 +120,8 @@ let answer_client_hello state ch buf =
      let f_data = finished cipher master_secret true hs_raw in
      let fin = Finished f_data in
      let fin_raw = Writer.assemble_handshake fin in
+
+     Tracing.sexpf ~tag:"handshake-out" ~f:sexp_of_tls_handshake fin ;
 
      (* we could as well already compute the traffic keys! *)
      let hs_raw = hs_raw <+> fin_raw in
@@ -152,6 +161,7 @@ let handle_handshake cs hs buf =
   let open Reader in
   match parse_handshake buf with
   | Or_error.Ok handshake ->
+     Tracing.sexpf ~tag:"handshake-in" ~f:sexp_of_tls_handshake handshake;
      (match cs, handshake with
       | AwaitClientHello13 (oldch, hrr, log), ClientHello ch ->
          answer_client_hello_retry hs oldch ch hrr log buf

@@ -423,6 +423,7 @@ let handle_raw_record state (hdr, buf as record : raw_record) =
        - let seq = left-padding sequence 0s until iv_length
        - nonce = seq XOR write_iv *)
   >>= fun (dec_st, dec, ty) ->
+  Tracing.sexpf ~tag:"decrypted-in" ~f:sexp_of_record (ty, dec) ;
   handle_packet state.handshake dec ty
   >|= fun (handshake, items, data, err) ->
   let (encryptor, decryptor, encs) =
@@ -430,6 +431,7 @@ let handle_raw_record state (hdr, buf as record : raw_record) =
       | `Change_enc enc' -> (enc', dec, es)
       | `Change_dec dec' -> (enc, dec', es)
       | `Record r       ->
+         Tracing.sexpf ~tag:"record-out" ~f:sexp_of_record r ;
           let (enc', encbuf) = encrypt_records enc handshake.protocol_version [r] in
           (enc', dec, es @ encbuf))
     (state.encryptor, dec_st, [])
@@ -437,7 +439,7 @@ let handle_raw_record state (hdr, buf as record : raw_record) =
   in
   let state' = { state with handshake ; encryptor ; decryptor } in
 
-  Tracing.sexpfs ~tag:"record-out" ~f:sexp_of_record encs ;
+  Tracing.sexpfs ~tag:"encrypted-out" ~f:sexp_of_record encs ;
 
   (state', encs, data, err)
 
@@ -488,7 +490,7 @@ let handle_tls state buf =
           Tracing.sexpf ~tag:"ok-alert-out" ~f:Packet.sexp_of_alert_type al ;
           `Alert al
         | `No_err ->
-          Tracing.sexpf ~tag:"state-out" ~f:sexp_of_state state ;
+          (* Tracing.sexpf ~tag:"state-out" ~f:sexp_of_state state ; *)
           `Ok state
       in
       `Ok (res, `Response resp, `Data data)
@@ -593,8 +595,8 @@ let client config =
   } in
   let state = { state with handshake } in
 
-  (* Tracing.sexpf ~tag:"handshake-out" ~f:sexp_of_tls_handshake ch ; *)
-  Tracing.sexpf ~tag:"state-out" ~f:sexp_of_state state ;
+  Tracing.sexpf ~tag:"handshake-out" ~f:sexp_of_tls_handshake ch ;
+  (*  Tracing.sexpf ~tag:"state-out" ~f:sexp_of_state state ;*)
   send_records state [(Packet.HANDSHAKE, raw)]
 
 let server config = new_state Config.(of_server config) `Server

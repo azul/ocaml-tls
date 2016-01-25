@@ -444,7 +444,7 @@ let handle_change_cipher_spec ss state packet =
 let handle_handshake ss hs buf =
   match Reader.parse_handshake buf with
   | Ok handshake ->
-    (* Tracing.sexpf ~tag:"handshake-in" ~f:sexp_of_tls_handshake handshake; *)
+     Tracing.sexpf ~tag:"handshake-in" ~f:sexp_of_tls_handshake handshake;
      ( match ss, handshake with
        | AwaitClientHello, ClientHello ch ->
           answer_client_hello hs ch buf
