@@ -313,10 +313,10 @@ let answer_server_hello_done state session sigalgs kex premaster raw log =
   let machina = AwaitServerChangeCipherSpec (session, server_ctx, checksum, ps)
   and ccst, ccs = change_cipher_spec in
 
-  List.iter (Tracing.sexpf ~tag:"handshake-out" ~f:sexp_of_tls_handshake) msgs;
-  Tracing.cs ~tag:"change-cipher-spec-out" ccs ;
+  (* List.iter (Tracing.sexpf ~tag:"handshake-out" ~f:sexp_of_tls_handshake) msgs; *)
+  (* Tracing.cs ~tag:"change-cipher-spec-out" ccs ; *)
   (* Tracing.cs ~tag:"master-secret" master_secret; *)
-  Tracing.sexpf ~tag:"handshake-out" ~f:sexp_of_tls_handshake fin;
+  (* Tracing.sexpf ~tag:"handshake-out" ~f:sexp_of_tls_handshake fin; *)
 
   ({ state with machina = Client machina },
    List.map (fun x -> `Record (Packet.HANDSHAKE, x)) raw_msgs @
@@ -355,7 +355,7 @@ let answer_hello_request state =
      let ch = { dch with extensions = exts @ dch.extensions ; sessionid = None } in
      let raw = Writer.assemble_handshake (ClientHello ch) in
      let machina = AwaitServerHelloRenegotiate (session, ch, [raw]) in
-     Tracing.sexpf ~tag:"handshake-out" ~f:sexp_of_tls_handshake (ClientHello ch) ;
+     (* Tracing.sexpf ~tag:"handshake-out" ~f:sexp_of_tls_handshake (ClientHello ch) ; *)
      ({ state with machina = Client machina }, [`Record (Packet.HANDSHAKE, raw)])
   in
 
@@ -373,14 +373,14 @@ let handle_change_cipher_spec cs state packet =
   | Ok (), AwaitServerChangeCipherSpec (session, server_ctx, client_verify, log) ->
      guard (Cs.null state.hs_fragment) (`Fatal `HandshakeFragmentsNotEmpty) >|= fun () ->
      let machina = AwaitServerFinished (session, client_verify, log) in
-     Tracing.cs ~tag:"change-cipher-spec-in" packet ;
+     (* Tracing.cs ~tag:"change-cipher-spec-in" packet ; *)
      ({ state with machina = Client machina }, [`Change_dec (Some server_ctx)])
   | Ok (), AwaitServerChangeCipherSpecResume (session, client_ctx, server_ctx, log) ->
      guard (Cs.null state.hs_fragment) (`Fatal `HandshakeFragmentsNotEmpty) >|= fun () ->
      let ccs = change_cipher_spec in
      let machina = AwaitServerFinishedResume (session, log) in
      Tracing.cs ~tag:"change-cipher-spec-in" packet ;
-     Tracing.cs ~tag:"change-cipher-spec-out" packet ;
+     (* Tracing.cs ~tag:"change-cipher-spec-out" packet ; *)
      ({ state with machina = Client machina },
       [`Record ccs ; `Change_enc (Some client_ctx); `Change_dec (Some server_ctx)])
   | Error re, _ -> fail (`Fatal (`ReaderError re))

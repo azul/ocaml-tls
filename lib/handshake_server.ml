@@ -425,7 +425,7 @@ let handle_change_cipher_spec ss state packet =
      let machina = AwaitClientFinished (session, log)
      in
      Tracing.cs ~tag:"change-cipher-spec-in" packet ;
-     Tracing.cs ~tag:"change-cipher-spec-out" packet ;
+     (* Tracing.cs ~tag:"change-cipher-spec-out" packet ; *)
 
      return ({ state with machina = Server machina },
              [`Record ccs; `Change_enc (Some server_ctx); `Change_dec (Some client_ctx)])
@@ -434,7 +434,7 @@ let handle_change_cipher_spec ss state packet =
      let machina = AwaitClientFinishedResume (session, server_verify, log)
      in
      Tracing.cs ~tag:"change-cipher-spec-in" packet ;
-     Tracing.cs ~tag:"change-cipher-spec-out" packet ;
+     (* Tracing.cs ~tag:"change-cipher-spec-out" packet ; *)
 
      ({ state with machina = Server machina },
       [`Change_dec (Some client_ctx)])

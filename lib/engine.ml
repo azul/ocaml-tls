@@ -459,7 +459,7 @@ let assemble_records (version : tls_version) rs =
 (* main entry point *)
 let handle_tls state buf =
 
-  (* Tracing.sexpf ~tag:"state-in" ~f:sexp_of_state state ; *)
+  Tracing.sexpf ~tag:"state-in" ~f:sexp_of_state state ;
 
   let rec handle_records st = function
     | []    -> return (st, [], None, `No_err)
@@ -490,7 +490,7 @@ let handle_tls state buf =
           Tracing.sexpf ~tag:"ok-alert-out" ~f:Packet.sexp_of_alert_type al ;
           `Alert al
         | `No_err ->
-          (* Tracing.sexpf ~tag:"state-out" ~f:sexp_of_state state ; *)
+          Tracing.sexpf ~tag:"state-out" ~f:sexp_of_state state ;
           `Ok state
       in
       `Ok (res, `Response resp, `Data data)
@@ -596,7 +596,7 @@ let client config =
   let state = { state with handshake } in
 
   Tracing.sexpf ~tag:"handshake-out" ~f:sexp_of_tls_handshake ch ;
-  (*  Tracing.sexpf ~tag:"state-out" ~f:sexp_of_state state ;*)
+  Tracing.sexpf ~tag:"state-out" ~f:sexp_of_state state ;
   send_records state [(Packet.HANDSHAKE, raw)]
 
 let server config = new_state Config.(of_server config) `Server
