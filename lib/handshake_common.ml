@@ -247,6 +247,7 @@ let signature version ?context_string data sig_algs hashes private_key =
      (* XXX should not be MD5/SHA1/SHA224 *)
      let module H = (val (Hash.module_of hash_algo)) in
      let module PSS = Rsa.PSS(H) in
+     let data = H.digest data in (* XXX See #407 https://github.com/tlswg/tls13-spec/issues/407 *)
      let to_sign = H.digest (prefix <+> ctx <+> data) in
      let signature = PSS.sign ~key:private_key to_sign in
      Writer.assemble_digitally_signed_1_2 hash_algo Packet.RSAPSS signature
@@ -308,7 +309,8 @@ let verify_digitally_signed version ?context_string hashes data signature_data c
                 | None -> stop
                 | Some x -> Cstruct.of_string x <+> stop
               in
-              H.digest (pre <+> con <+> signature_data)
+              let data = H.digest signature_data in
+              H.digest (pre <+> con <+> data)
             in
             guard (PSS.verify ~key:pubkey ~signature data) (`Fatal `RSASignatureMismatch)
          | Ok _ -> fail (`Fatal `NotRSASignature)
