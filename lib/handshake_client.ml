@@ -29,7 +29,7 @@ let default_client_hello config =
        and groups =
          List.map Ciphersuite.group_to_any_group config.groups
        and keyshares, secrets =
-         (* XXX: we could for sure generate fewer Dh keys *)
+         (* XXX: we could for sure generate fewer DH keys *)
          let secrets, shares = List.split (List.map Dh.gen_key config.groups) in
          (List.combine
             (List.map Ciphersuite.group_to_any_group config.groups)
@@ -102,7 +102,8 @@ let answer_server_hello state (ch : client_hello) sh secrets raw log =
     validate_reneg (get_secure_renegotiation sh.extensions) >|= fun () ->
     match state.config.cached_session with
     | Some epoch when epoch_matches epoch ->
-       let session = { session_of_epoch epoch with
+       let session = session_of_epoch epoch in
+       let session = { session with
                        client_random = ch.client_random ;
                        server_random = sh.server_random ;
                        client_version = ch.client_version ;

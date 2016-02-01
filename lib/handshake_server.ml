@@ -343,7 +343,8 @@ let answer_client_hello state (ch : client_hello) raw =
 
     match option None state.config.session_cache ch.sessionid with
     | Some epoch when epoch_matches epoch state.protocol_version ch.ciphersuites ch.extensions ->
-      Some { session_of_epoch epoch with
+      let session = session_of_epoch epoch in
+      Some { session with
              client_random = ch.client_random ;
              client_version = ch.client_version ;
              client_auth = (epoch.peer_certificate <> None) ;

@@ -21,6 +21,7 @@ let answer_server_hello state ch (sh : server_hello) secrets raw log =
 
   let session = { empty_session with client_random = ch.client_random ; server_random = sh.server_random ; client_version = ch.client_version ; ciphersuite = sh.ciphersuite } in
 
+  (* XXX: keyshare might be prefixed by another length field (2 byte for DHE, 1 byte for ECDHE) *)
   let shared = Nocrypto.Dh.shared group secret keyshare in
 
   let log = log <+> raw in

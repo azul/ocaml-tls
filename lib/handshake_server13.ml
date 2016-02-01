@@ -66,6 +66,7 @@ let answer_client_hello state ch raw log =
 
      (* if acceptable, do server hello *)
      let secret, public = Nocrypto.Dh.gen_key group in
+     (* XXX: might be that keyshare is <1..2^16-1> (thus another length field) for DH -- <1..2^8-1> for EC point *)
      let shared = Nocrypto.Dh.shared group secret keyshare in
      let sh = { server_version = TLS_1_3 ;
                 server_random = Nocrypto.Rng.generate 32 ;
