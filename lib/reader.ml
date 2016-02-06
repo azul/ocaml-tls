@@ -259,17 +259,33 @@ let parse_extension buf = function
          `ExtendedMasterSecret
   | x -> `UnknownExtension (extension_type_to_int x, buf)
 
-let parse_keyshare_entry p buf =
-  let parse_share data =
+let parse_keyshare_entry buf =
+  let parse_share l data =
     let size = BE.get_uint16 data 0 in
-    split (shift data 2) size
+    let share, left = split (shift data 2) size in
+    match l with
+    | 1 ->
+      let l = get_uint8 share 0 in
+      if len share <> l + 1 then
+        raise_trailing_bytes "keyshare"
+      else
+        (sub share 1 l, left)
+    | 2 ->
+      let l = BE.get_uint16 share 0 in
+      if len share <> l + 2 then
+        raise_trailing_bytes "keyshare"
+      else
+        (sub share 2 l, left)
+    | 0 -> (share, left)
+    | _ -> raise_unknown "keyshare"
   in
-  match p buf with
+  match parse_named_group buf with
   | Some g, rest ->
-     let share, left = parse_share rest in
+     let ksl = ks_len g in
+     let share, left = parse_share ksl rest in
      (Some (g, share), left)
   | None, rest ->
-     let _, left = parse_share rest in
+     let _, left = parse_share 0 rest in
      (None, left)
 
 let parse_presharedkey buf =
@@ -326,7 +342,7 @@ let parse_client_extension raw =
        if ll + 2 <> len buf then
          raise_unknown "bad key share extension"
        else
-         let shares = parse_list (parse_keyshare_entry parse_named_group) (sub buf 2 ll) [] in
+         let shares = parse_list parse_keyshare_entry (sub buf 2 ll) [] in
          `KeyShare shares
     | Some PRE_SHARED_KEY ->
        let ll = BE.get_uint16 buf 0 in
@@ -354,10 +370,13 @@ let parse_server_extension raw =
         | [] -> `Hostname
         | _      -> raise_unknown "bad server name indication (multiple names)")
     | Some KEY_SHARE ->
-       (match parse_keyshare_entry parse_group buf with
+       (match parse_keyshare_entry buf with
         | _, xs when len xs <> 0 -> raise_trailing_bytes "server keyshare"
         | None, _ -> raise_unknown "keyshare entry"
-        | Some ks, _ -> `KeyShare ks)
+        | Some (g, ks), _ ->
+          match Ciphersuite.any_group_to_group g with
+          | Some g -> `KeyShare (g, ks)
+          | None -> raise_unknown "keyshare entry")
     | Some PRE_SHARED_KEY ->
        (match parse_presharedkey buf with
         | _, xs when len xs <> 0 -> raise_trailing_bytes "server pre_shared_key"
@@ -593,11 +612,16 @@ let parse_server_configuration buf =
   let cfgidlen = BE.get_uint16 buf 0 in
   let configuration_id, rest = split (shift buf 2) cfgidlen in
   let expiration_date, rest = split rest 4 in
-  let key_share, rest = parse_keyshare_entry parse_group rest in
+  let key_share, rest = parse_keyshare_entry rest in
   let early_data_type = get_uint8 rest 0 in
   let extensions = shift rest 1 in
   match key_share, int_to_early_data_type early_data_type with
-  | Some key_share, Some early_data_type -> { configuration_id ; expiration_date ; key_share ; early_data_type ; extensions }
+  | Some (g, ks), Some early_data_type ->
+    (match Ciphersuite.any_group_to_group g with
+     | Some g ->
+       let key_share = (g, ks) in
+       { configuration_id ; expiration_date ; key_share ; early_data_type ; extensions }
+     | None -> raise_unknown "key share")
   | None, _ -> raise_unknown "key share"
   | _, None -> raise_unknown "early data type"
 

@@ -161,10 +161,16 @@ let assemble_group g =
 let assemble_supported_groups groups =
   assemble_list Two assemble_named_group groups
 
-let assemble_keyshare_entry a (ng, ks) =
-  let g = a ng in
-  let l = create 2 in
-  BE.set_uint16 l 0 (len ks) ;
+let assemble_keyshare_entry (ng, ks) =
+  let g = assemble_named_group ng in
+  let kslen = ks_len ng in
+  let l = create (2 + kslen) in
+  let ksl = len ks in
+  BE.set_uint16 l 0 (kslen + ksl) ;
+  (match kslen with
+   | 1 -> set_uint8 l 2 ksl
+   | 2 -> BE.set_uint16 l 2 ksl
+   | _ -> assert false) ;
   g <+> l <+> ks
 
 let assemble_psk psk =
@@ -211,7 +217,7 @@ let assemble_client_extension e =
        (buf, PADDING)
     | `SignatureAlgorithms s -> (assemble_signature_algorithms s, SIGNATURE_ALGORITHMS)
     | `KeyShare ks ->
-       (assemble_list Two (assemble_keyshare_entry assemble_named_group) ks, KEY_SHARE)
+       (assemble_list Two assemble_keyshare_entry ks, KEY_SHARE)
     | `PreSharedKey ids ->
        (assemble_list Two assemble_psk ids, PRE_SHARED_KEY)
     | `EarlyDataIndication edi ->
@@ -226,7 +232,9 @@ let assemble_client_extension e =
 let assemble_server_extension e =
   let pay, typ = match e with
     | `Hostname -> (create 0, SERVER_NAME)
-    | `KeyShare ks -> (assemble_keyshare_entry assemble_group ks, KEY_SHARE)
+    | `KeyShare (g, ks) ->
+      let ng = Ciphersuite.group_to_any_group g in
+      (assemble_keyshare_entry (ng, ks), KEY_SHARE)
     | `PreSharedKey psk -> (assemble_psk psk, PRE_SHARED_KEY)
     | `EarlyDataIndication -> (create 0, EARLY_DATA)
     | x -> assemble_extension x
@@ -349,7 +357,8 @@ let assemble_hello_retry_request hrr =
 let assemble_server_config sc =
   let clen = create 2 in
   BE.set_uint16 clen 0 (len sc.configuration_id) ;
-  let ks = assemble_keyshare_entry assemble_group sc.key_share in
+  let ng = Ciphersuite.group_to_any_group (fst sc.key_share) in
+  let ks = assemble_keyshare_entry (ng, snd sc.key_share) in
   let edt = create 1 in
   set_uint8 edt 0 (early_data_type_to_int sc.early_data_type) ;
   clen <+> sc.configuration_id <+> ks <+> edt <+> sc.extensions

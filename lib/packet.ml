@@ -251,6 +251,18 @@ cenum named_group {
   ARBITRARY_EXPLICIT_CHAR2_CURVES = 0xFF02
 } as uint16_t (sexp)
 
+let ks_len = function
+  | FFDHE2048
+  | FFDHE3072
+  | FFDHE4096
+  | FFDHE6144
+  | FFDHE8192
+  | FFDHE_PRIVATE_USE1
+  | FFDHE_PRIVATE_USE2
+  | FFDHE_PRIVATE_USE3
+  | FFDHE_PRIVATE_USE4 -> 2
+  | _ -> 1
+
 cenum ec_point_format {
   UNCOMPRESSED              = 0;
   ANSIX962_COMPRESSED_PRIME = 1;
