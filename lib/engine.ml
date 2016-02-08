@@ -244,34 +244,35 @@ let decrypt (version : tls_version) (st : crypto_state) ty buf =
   match st, version with
   | None, _ -> return (st, buf, ty)
   | Some ctx, TLS_1_3 ->
-     (match ctx.cipher_st with
-      | AEAD c ->
-         (* XXX: FAILURE VALUES! *)
-         guard (ty = Packet.APPLICATION_DATA) (`Fatal `MACUnderflow) >>= fun () ->
-         let nonce = Crypto.aead_nonce c.nonce ctx.sequence in
-         let unpad x =
-           let rec eat idx =
-             match Cstruct.get_uint8 x idx with
-             | 0 when pred idx > 0 -> eat (pred idx)
-             | 0 -> fail (`Fatal `MACUnderflow)
-             | n ->
-                let pkt = if idx = 0 then Cstruct.create 0 else Cstruct.sub x 0 idx in
-                match Packet.int_to_content_type n with
-                | Some ct when ct <> Packet.CHANGE_CIPHER_SPEC -> return (pkt, ct)
-                | _ -> fail (`Fatal `MACUnderflow)
-           in
-           eat (pred (Cstruct.len x))
+    guard (ty = Packet.APPLICATION_DATA) (`Fatal `InvalidMessage) >>= fun () ->
+    (match ctx.cipher_st with
+     | AEAD c ->
+       (* XXX: FAILURE VALUES! *)
+       guard (ty = Packet.APPLICATION_DATA) (`Fatal `MACUnderflow) >>= fun () ->
+       let nonce = Crypto.aead_nonce c.nonce ctx.sequence in
+       let unpad x =
+         let rec eat idx =
+           match Cstruct.get_uint8 x idx with
+           | 0 when pred idx > 0 -> eat (pred idx)
+           | 0 -> fail (`Fatal `MACUnderflow)
+           | n ->
+             let pkt = if idx = 0 then Cstruct.create 0 else Cstruct.sub x 0 idx in
+             match Packet.int_to_content_type n with
+             | Some ct when ct <> Packet.CHANGE_CIPHER_SPEC -> return (pkt, ct)
+             | _ -> fail (`Fatal `MACUnderflow)
          in
-         (match Crypto.decrypt_aead ~cipher:c.cipher ~key:c.cipher_secret ~nonce buf with
-          | None -> fail (`Fatal `MACMismatch)
-          | Some x ->
-             unpad x >|= fun (data, ty) ->
-             (Some { ctx with sequence = Int64.succ ctx.sequence }, data, ty))
-      | _ -> fail (`Fatal `InvalidMessage))
+         eat (pred (Cstruct.len x))
+       in
+       (match Crypto.decrypt_aead ~cipher:c.cipher ~key:c.cipher_secret ~nonce buf with
+        | None -> fail (`Fatal `MACMismatch)
+        | Some x ->
+          unpad x >|= fun (data, ty) ->
+          (Some { ctx with sequence = Int64.succ ctx.sequence }, data, ty))
+     | _ -> fail (`Fatal `InvalidMessage))
   | Some ctx, _ ->
-      dec ctx >>= fun (st', msg) ->
-      let ctx' = { cipher_st = st' ; sequence = Int64.succ ctx.sequence } in
-      return (Some ctx', msg, ty)
+    dec ctx >>= fun (st', msg) ->
+    let ctx' = { cipher_st = st' ; sequence = Int64.succ ctx.sequence } in
+    return (Some ctx', msg, ty)
 
 (* party time *)
 let rec separate_records : Cstruct.t ->  ((tls_hdr * Cstruct.t) list * Cstruct.t) eff
@@ -415,13 +416,6 @@ let handle_raw_record state (hdr, buf as record : raw_record) =
     | _                          , v       -> guard (version_eq hdr.version v) (`Fatal (`BadRecordVersion hdr.version)) )
   >>= fun () ->
   decrypt version state.decryptor hdr.content_type buf
-  (* in 1.3 the content type is inside of the encrypted thing:
-     - hdr.content_type _must_ be 23
-     - <data> + <type> + <0*> (padding) [where total length may not exceed 2 ^ 14]
-     - AEAD enc/dec is also different:
-       - there's no adata
-       - let seq = left-padding sequence 0s until iv_length
-       - nonce = seq XOR write_iv *)
   >>= fun (dec_st, dec, ty) ->
   Tracing.sexpf ~tag:"decrypted-in" ~f:sexp_of_record (ty, dec) ;
   handle_packet state.handshake dec ty
