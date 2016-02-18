@@ -16,9 +16,9 @@ let lines ic =
       | line -> return line
 
 let eprint_sexp sexp =
-  output_string stderr Sexplib.Sexp.(to_string_hum sexp) ;
-  output_string stderr "\n\n" ;
-  flush stderr
+  output_string stdout Sexplib.Sexp.(to_string_hum sexp) ;
+  output_string stdout "\n\n" ;
+  flush stdout
 
 let print_alert where alert =
     Printf.eprintf "TLS ALERT (%s): %s\n%!"
