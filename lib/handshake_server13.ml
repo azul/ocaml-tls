@@ -72,6 +72,8 @@ let answer_client_hello state ch raw log =
     keyshare
   in
 
+  Tracing.sexpf ~tag:"version" ~f:sexp_of_tls_version TLS_1_3 ;
+
   match
     resumed_session,
     first_match (List.map fst keyshares) state.config.Config.groups,
@@ -81,6 +83,7 @@ let answer_client_hello state ch raw log =
   with
   | Some epoch, Some group, Some dhe_psk_cipher, _, _ ->
     (* DHE_PSK *)
+    trace_cipher dhe_psk_cipher ;
     let keyshare = keyshare group in
     let secret, my_share = Nocrypto.Dh.gen_key group in
 
@@ -103,6 +106,7 @@ let answer_client_hello state ch raw log =
 
     let log = log <+> ee_raw in
     let master_secret = master_secret dhe_psk_cipher es ss log in
+    Tracing.cs ~tag:"master-secret" master_secret ;
 
     let f_data = finished dhe_psk_cipher master_secret true log in
     let fin = Finished f_data in
@@ -127,6 +131,7 @@ let answer_client_hello state ch raw log =
 
   | Some epoch, None, _, Some psk_cipher, _ ->
     (* PSK *)
+    trace_cipher psk_cipher ;
     let sh, session = base_server_hello ~epoch psk_cipher [`PreSharedKey epoch.psk_id] in
     let sh_raw = Writer.assemble_handshake (ServerHello sh) in
 
@@ -145,6 +150,7 @@ let answer_client_hello state ch raw log =
 
     let log = log <+> ee_raw in
     let master_secret = master_secret psk_cipher es ss log in
+    Tracing.cs ~tag:"master-secret" master_secret ;
 
     let f_data = finished psk_cipher master_secret true log in
     let fin = Finished f_data in
@@ -169,6 +175,7 @@ let answer_client_hello state ch raw log =
 
   | _, Some group, _, _, Some cipher ->
     (* full handshake *)
+    trace_cipher cipher ;
     let keyshare = keyshare group in
     (* XXX: for-each ciphers there should be a suitable group (skipping for now since we only have DHE) *)
     (* XXX: check sig_algs for signatures in certificate chain *)
@@ -212,6 +219,7 @@ let answer_client_hello state ch raw log =
 
     let log = log <+> cv_raw in
     let master_secret = master_secret cipher es ss log in
+    Tracing.cs ~tag:"master-secret" master_secret ;
     let resumption_secret = resumption_secret cipher master_secret log in
 
     let f_data = finished cipher master_secret true log in
