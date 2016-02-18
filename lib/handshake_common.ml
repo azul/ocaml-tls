@@ -315,6 +315,7 @@ let verify_digitally_signed version ?context_string hashes data signature_data c
        ( match Reader.parse_digitally_signed_1_2 data with
          | Ok (hash_algo, Packet.RSAPSS, signature) ->
             guard (List.mem hash_algo Config.tls13_hashes) (`Fatal `InvalidMessage) >>= fun () ->
+            guard (List.mem hash_algo hashes) (`Error (`NoConfiguredHash hashes)) >>= fun () ->
             let module H = (val (Hash.module_of hash_algo)) in
             let module PSS = Rsa.PSS(H) in
             let data =
