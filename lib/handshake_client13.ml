@@ -170,9 +170,8 @@ let answer_session_ticket state _lifetime psk_id =
   return ({ state with session }, [])
 
 let handle_handshake cs hs buf =
-  let open Reader in
-  match parse_handshake buf with
-  | Or_error.Ok handshake ->
+  match Reader.parse_handshake buf with
+  | Ok handshake ->
      Tracing.sexpf ~tag:"handshake-in" ~f:sexp_of_tls_handshake handshake;
      (match cs, handshake with
       | AwaitServerHello13 (ch, secrets, log), ServerHello sh ->
@@ -182,10 +181,10 @@ let handle_handshake cs hs buf =
       | AwaitServerFinishedMaybeAuth13 (sd, exts, es, ss, log), CertificateRequest _ -> assert false (* process CR *)
       | AwaitServerFinishedMaybeAuth13 (sd, exts, es, ss, log), ServerConfiguration _ -> assert false (* preserve SC *)
       | AwaitServerFinishedMaybeAuth13 (sd, exts, es, ss, log), Certificate cs ->
-         (match parse_certificates_1_3 cs with
-          | Or_error.Ok (con, cs) -> guard (Cs.null con) (`Fatal `InvalidMessage) >>= fun () ->
-                                     answer_certificate hs sd exts es ss cs buf log
-          | Or_error.Error re -> fail (`Fatal (`ReaderError re)))
+         (match Reader.parse_certificates_1_3 cs with
+          | Ok (con, cs) -> guard (Cs.null con) (`Fatal `InvalidMessage) >>= fun () ->
+                            answer_certificate hs sd exts es ss cs buf log
+          | Error re -> fail (`Fatal (`ReaderError re)))
       | AwaitServerCertificateVerify13 (sd, exts, es, ss, log), CertificateVerify cv ->
          answer_certificate_verify hs sd exts es ss cv buf log
       | AwaitServerFinished13 (sd, exts, es, ss, log), Finished fin ->
@@ -193,9 +192,9 @@ let handle_handshake cs hs buf =
       | AwaitServerFinishedMaybeAuth13 (sd, exts, es, ss, log), Finished fin ->
          answer_finished hs sd exts es ss fin buf log
       | Established13, SessionTicket se ->
-        (match parse_session_ticket_1_3 se with
-         | Or_error.Ok (lifetime, psk_id) -> answer_session_ticket hs lifetime psk_id
-         | Or_error.Error re -> fail (`Fatal (`ReaderError re)))
+        (match Reader.parse_session_ticket_1_3 se with
+         | Ok (lifetime, psk_id) -> answer_session_ticket hs lifetime psk_id
+         | Error re -> fail (`Fatal (`ReaderError re)))
       | Established13, CertificateRequest _ -> assert false (* maybe send out C, CV, F *)
       | _, hs -> fail (`Fatal (`UnexpectedHandshake hs)))
-  | Or_error.Error re -> fail (`Fatal (`ReaderError re))
+  | Error re -> fail (`Fatal (`ReaderError re))

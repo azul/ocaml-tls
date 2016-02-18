@@ -1142,12 +1142,12 @@ let bad_certificate_cstruct_data =
 
 let bad_certificate_cstruct_data_parser xs _ =
   let buf = list_to_cstruct xs in
-  Reader.(match parse_handshake buf with
-          | Or_error.Ok (Core.Certificate cs) ->
-             (match Reader.parse_certificates cs with
-              | Or_error.Ok _ -> assert_failure "bad certificate parser won"
-              | Or_error.Error _ -> ())
-          | _ -> assert_failure "should've been a certificate")
+  match Reader.parse_handshake buf with
+  | Ok (Core.Certificate cs) ->
+    (match Reader.parse_certificates cs with
+     | Ok _ -> assert_failure "bad certificate parser won"
+     | Error _ -> ())
+  | _ -> assert_failure "should've been a certificate"
 
 let bad_certificate_cstruct_data_tests =
   List.mapi

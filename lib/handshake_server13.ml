@@ -309,9 +309,8 @@ let answer_client_hello_retry state oldch ch hrr raw log =
   answer_client_hello state ch raw log (* XXX: TLS draft: restart hash? https://github.com/tlswg/tls13-spec/issues/104 *)
 
 let handle_handshake cs hs buf =
-  let open Reader in
-  match parse_handshake buf with
-  | Or_error.Ok handshake ->
+  match Reader.parse_handshake buf with
+  | Ok handshake ->
      Tracing.sexpf ~tag:"handshake-in" ~f:sexp_of_tls_handshake handshake;
      (match cs, handshake with
       | AwaitClientHello13 (oldch, hrr, log), ClientHello ch ->
@@ -321,4 +320,4 @@ let handle_handshake cs hs buf =
       | AwaitClientFinished13 (sd, cc, log), Finished x ->
          answer_client_finished hs x sd cc buf log
       | _, hs -> fail (`Fatal (`UnexpectedHandshake hs)) )
-  | Or_error.Error re -> fail (`Fatal (`ReaderError re))
+  | Error re -> fail (`Fatal (`ReaderError re))

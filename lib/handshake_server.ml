@@ -466,12 +466,12 @@ let handle_handshake ss hs buf =
           answer_client_hello hs ch buf
        | AwaitClientCertificate_RSA (session, log), Certificate cs ->
           (match Reader.parse_certificates cs with
-           | Or_error.Ok cs -> answer_client_certificate_RSA hs session cs buf log
-           | Or_error.Error re -> fail (`Fatal (`ReaderError re)))
+           | Ok cs -> answer_client_certificate_RSA hs session cs buf log
+           | Error re -> fail (`Fatal (`ReaderError re)))
        | AwaitClientCertificate_DHE_RSA (session, dh_sent, log), Certificate cs ->
           (match Reader.parse_certificates cs with
-           | Or_error.Ok cs -> answer_client_certificate_DHE_RSA hs session dh_sent cs buf log
-           | Or_error.Error re -> fail (`Fatal (`ReaderError re)))
+           | Ok cs -> answer_client_certificate_DHE_RSA hs session dh_sent cs buf log
+           | Error re -> fail (`Fatal (`ReaderError re)))
        | AwaitClientKeyExchange_RSA (session, log), ClientKeyExchange kex ->
           answer_client_key_exchange_RSA hs session kex buf log
        | AwaitClientKeyExchange_DHE_RSA (session, dh_sent, log), ClientKeyExchange kex ->

@@ -421,12 +421,12 @@ let handle_handshake cs hs buf =
           answer_server_hello_renegotiate hs session ch sh buf log
        | AwaitCertificate_RSA (session, log), Certificate cs ->
           (match Reader.parse_certificates cs with
-           | Or_error.Ok cs -> answer_certificate_RSA hs session cs buf log
-           | Or_error.Error re -> fail (`Fatal (`ReaderError re)))
+           | Ok cs -> answer_certificate_RSA hs session cs buf log
+           | Error re -> fail (`Fatal (`ReaderError re)))
        | AwaitCertificate_DHE_RSA (session, log), Certificate cs ->
           (match Reader.parse_certificates cs with
-           | Or_error.Ok cs -> answer_certificate_DHE_RSA hs session cs buf log
-           | Or_error.Error re -> fail (`Fatal (`ReaderError re)))
+           | Ok cs -> answer_certificate_DHE_RSA hs session cs buf log
+           | Error re -> fail (`Fatal (`ReaderError re)))
        | AwaitServerKeyExchange_DHE_RSA (session, log), ServerKeyExchange kex ->
           answer_server_key_exchange_DHE_RSA hs session kex buf log
        | AwaitCertificateRequestOrServerHelloDone (session, kex, pms, log), CertificateRequest cr ->
