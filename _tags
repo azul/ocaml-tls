@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: ea58e34c7c6505e47a8db09ab7d54757)
+# DO NOT EDIT (digest: a790b8b2de152aa5a822b79e58d5fe57)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -129,6 +129,19 @@ true: annot, bin_annot
 "lwt/examples/echo_server.native": pkg_x509
 "lwt/examples/echo_server.native": use_tls
 "lwt/examples/echo_server.native": use_tls-lwt
+# Executable resume_echo_server
+"lwt/examples/resume_echo_server.native": pkg_cstruct.lwt
+"lwt/examples/resume_echo_server.native": pkg_cstruct.syntax
+"lwt/examples/resume_echo_server.native": pkg_hkdf
+"lwt/examples/resume_echo_server.native": pkg_lwt.syntax
+"lwt/examples/resume_echo_server.native": pkg_lwt.unix
+"lwt/examples/resume_echo_server.native": pkg_nocrypto
+"lwt/examples/resume_echo_server.native": pkg_nocrypto.lwt
+"lwt/examples/resume_echo_server.native": pkg_result
+"lwt/examples/resume_echo_server.native": pkg_sexplib.syntax
+"lwt/examples/resume_echo_server.native": pkg_x509
+"lwt/examples/resume_echo_server.native": use_tls
+"lwt/examples/resume_echo_server.native": use_tls-lwt
 # Executable echo_server_sni
 "lwt/examples/echo_server_sni.native": pkg_cstruct.lwt
 "lwt/examples/echo_server_sni.native": pkg_cstruct.syntax
@@ -155,6 +168,19 @@ true: annot, bin_annot
 "lwt/examples/echo_client.native": pkg_x509
 "lwt/examples/echo_client.native": use_tls
 "lwt/examples/echo_client.native": use_tls-lwt
+# Executable resume_client
+"lwt/examples/resume_client.native": pkg_cstruct.lwt
+"lwt/examples/resume_client.native": pkg_cstruct.syntax
+"lwt/examples/resume_client.native": pkg_hkdf
+"lwt/examples/resume_client.native": pkg_lwt.syntax
+"lwt/examples/resume_client.native": pkg_lwt.unix
+"lwt/examples/resume_client.native": pkg_nocrypto
+"lwt/examples/resume_client.native": pkg_nocrypto.lwt
+"lwt/examples/resume_client.native": pkg_result
+"lwt/examples/resume_client.native": pkg_sexplib.syntax
+"lwt/examples/resume_client.native": pkg_x509
+"lwt/examples/resume_client.native": use_tls
+"lwt/examples/resume_client.native": use_tls-lwt
 # Executable http_client
 "lwt/examples/http_client.native": pkg_cstruct.lwt
 "lwt/examples/http_client.native": pkg_cstruct.syntax
