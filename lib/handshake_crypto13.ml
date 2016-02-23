@@ -62,6 +62,7 @@ let resumption_secret cs master_secret log =
 let app_ctx cs log ms =
   let hash = Ciphersuite.hash_of cs in
   let log = Hash.digest hash log in
+  trace "traffic hash" log ;
   let sec = traffic_secret hash ms log in
   ctx cs "application data key expansion, " sec log
 

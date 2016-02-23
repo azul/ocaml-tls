@@ -93,7 +93,7 @@ let answer_client_hello state ch raw log =
     Tracing.sexpf ~tag:"handshake-out" ~f:sexp_of_tls_handshake (ServerHello sh) ;
 
     let ss = epoch.resumption_secret
-    and es = Nocrypto.Dh.shared group secret keyshare
+    and es = Nocrypto.Dh.shared group secret keyshare (* XXX guard *)
     in
 
     let log = log <+> raw <+> sh_raw in
