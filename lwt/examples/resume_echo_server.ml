@@ -55,7 +55,7 @@ let serve_ssl port callback =
         | Unix.Unix_error (e, f, p) -> return (`L (string_of_unix_err e f p))
         | Tls_lwt.Tls_alert a -> return (`L (Tls.Packet.alert_type_to_string a))
         | Tls_lwt.Tls_failure f -> return (`L (Tls.Engine.string_of_failure f))
-        | exn -> return (`L "loop: exception")
+        | exn -> let str = Printexc.to_string exn in return (`L ("loop: exception " ^ str))
     with
     | `R (t, addr) ->
        yap ~tag "-> connect" >>
