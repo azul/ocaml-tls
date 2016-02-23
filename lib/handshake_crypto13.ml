@@ -84,7 +84,7 @@ let master_secret cs es ss hlog =
 
 let finished cs master_secret server data =
   let hash = Ciphersuite.hash_of cs in
-  let label = if server then "server_finished" else "client_finished" in
+  let label = if server then "server finished" else "client finished" in
   let key = expand_label hash master_secret label (Cstruct.create 0) (Hash.digest_size hash) in
   Hash.mac hash ~key (Hash.digest hash data)
 
