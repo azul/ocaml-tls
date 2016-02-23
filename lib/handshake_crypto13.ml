@@ -38,8 +38,8 @@ let ctx cs lbl sec log =
     in
     { State.sequence = 0L ; cipher_st = Crypto.Ciphers.get_aead ~secret ~nonce pp }
   in
-  (ctx "server write key" "server write IV",
-   ctx "client write key" "client write IV")
+  (ctx "server write key" "server write iv",
+   ctx "client write key" "client write iv")
 
 let hs_ctx cs log es =
   let hash = Ciphersuite.hash_of cs in
