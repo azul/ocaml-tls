@@ -77,7 +77,7 @@ let serve_ssl port callback =
 let echo_server port =
   serve_ssl port @@ fun (ic, oc) ->
     lines ic |> Lwt_stream.iter_s (fun line ->
-      yap "handler" ("+ " ^ line) >> Lwt_io.write_line oc line)
+      yap ~tag:"handler" ("+ " ^ string_of_int (String.length line)) >> Lwt_io.write_line oc line)
 
 let () =
   let port =
