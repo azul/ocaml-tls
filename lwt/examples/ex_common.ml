@@ -7,7 +7,7 @@ let ca_cert_dir = "./certificates"
 let server_cert = "./certificates/server.pem"
 let server_key  = "./certificates/server.key"
 
-let yap ~tag msg = Lwt_io.printf "[%s] %s\n%!" tag msg
+let yap ~tag msg = Lwt_io.printf "((%s) %s)\n%!" tag msg
 
 let lines ic =
   Lwt_stream.from @@ fun () ->
@@ -21,9 +21,9 @@ let eprint_sexp sexp =
   flush stdout
 
 let print_alert where alert =
-    Printf.eprintf "TLS ALERT (%s): %s\n%!"
+    Printf.eprintf "(TLS ALERT (%s): %s)\n%!"
       where (Tls.Packet.alert_type_to_string alert)
 
 let print_fail where fail =
-  Printf.eprintf "TLS FAIL (%s): %s\n%!"
+  Printf.eprintf "(TLS FAIL (%s): %s)\n%!"
     where (Tls.Engine.string_of_failure fail)
